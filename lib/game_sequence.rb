@@ -21,8 +21,13 @@ class PlayGame
 
   def game_sequence
     game_board.print_board
-    get_player_input
-    input_valid?
+    until check_mate?
+      get_player_input
+      input_valid?
+      move_piece
+      game_board.print_board
+      @turn += 1
+    end
   end
 
   def get_player_input
@@ -39,8 +44,8 @@ class PlayGame
     new_item_num = LETTERS[:"#{input[1][0]}"]
     new_row_num = (8 - input[1][1].to_i)
     check_new_items(new_row_num, new_item_num)
-    @piece_position = [[row_num], [item_num]]
-    @end_position = [[new_row_num], [new_item_num]]
+    @piece_position = [row_num, item_num]
+    @end_position = [new_row_num, new_item_num]
     calculate_move(row_num, new_row_num, item_num, new_item_num)
   end
 
@@ -74,8 +79,6 @@ class PlayGame
 
   def input_valid?
     board = game_board.board
-    @piece_position = @piece_position.flatten
-    @end_position = @end_position.flatten
     start_place = board[@piece_position[0]][@piece_position[1]]
     end_place = board[@end_position[0]][@end_position[1]]
     if chess_piece.correct_color?(start_place, @turn) != true
@@ -85,12 +88,6 @@ class PlayGame
     if valid_move? != true
       puts "Please choose a valid move"
       get_player_input
-    end
-    if end_place != " "
-      if game_board.opposite_color?(end_place, @turn) != true
-        puts "Please choose a move including a correct end position"
-        get_player_input
-      end
     end
     if in_check?(@turn) == true
       puts "Please choose a move that does not place your king in check"
@@ -102,10 +99,12 @@ class PlayGame
     chess_piece.create_move_list(game_board.board[@piece_position[0]][@piece_position[1]], @piece_position, game_board.board).include?(@move)
   end
 
-  def create_temp_board
-    temp_board = game_board.board
-    temp_board[@end_position[0]][@end_position[1]] = temp_board[@piece_position[0]][@piece_position[1]]
-    temp_board[@piece_position[0]][@piece_position[1]] = " "
+  def create_temp_board(start_position=@piece_position, end_position=@end_position)
+    temp_board = game_board.board.map do |arr|
+      arr.slice(0..-1)
+    end
+    temp_board[end_position[0]][end_position[1]] = temp_board[start_position[0]][start_position[1]]
+    temp_board[start_position[0]][start_position[1]] = " "
     temp_board
   end
 
@@ -119,13 +118,13 @@ class PlayGame
     temp_board.each_index do |row|
       temp_board[row].each_with_index do |piece, i|
         if turn % 2 == 0
-          if piece != " " && BLACK.has_value?(piece) && piece != "\u265f" && piece != "\u265a"
+          if piece != " " && BLACK.has_value?(piece)
             if chess_piece.get_end_position_values([row, i], temp_board, piece).include?("\u2654") == true
               check = true
             end
           end
         elsif turn % 2 == 1
-          if piece != " " && WHITE.has_value?(piece) && piece != "\u2659" && piece != "\u2654"
+          if piece != " " && WHITE.has_value?(piece)
             if chess_piece.get_end_position_values([row, i], temp_board, piece).include?("\u265a") == true
               check = true
             end
@@ -135,8 +134,68 @@ class PlayGame
     end
     check
   end
+
+  def move_piece
+    if game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" && @move == [2, 0]
+      game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
+      game_board.board[@piece_position[0]][@piece_position[1]] = " "
+      #game_board.board[@piece_position[0] + 1][@piece_position[1]] = "en passant"
+      game_board.board[@piece_position[0] + 1][@piece_position[1]] = "_"
+    elsif game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659" && @move == [-2, 0]
+      game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
+      game_board.board[@piece_position[0]][@piece_position[1]] = " "
+      # game_board.board[@piece_position[0] - 1][@piece_position[1]] = "en passant"
+      game_board.board[@piece_position[0] - 1][@piece_position[1]] = "_"
+    # elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "en passant"
+    elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "_"
+      game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
+      game_board.board[@piece_position[0]][@piece_position[1]] = " "
+      game_board.board[@piece_position[0]][@end_position[1]] = " "
+    else
+      game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
+      game_board.board[@piece_position[0]][@piece_position[1]] = " "
+    end
+  end
+
+  def check_mate?
+    check_mate = true
+    game_board.board.each_index do |row|
+      game_board.board[row].each_with_index do |piece, i|
+        if turn % 2 == 0
+          if piece != " " && WHITE.has_value?(piece)
+            possible_moves = chess_piece.create_move_list(piece, [row, i], game_board.board)
+            possible_moves.each do |move|
+              if row + move[0] > 0 && row + move[0] < 8 && i + move[1] > 0 && i + move[1] < 8
+                start_position = [row, i]
+                end_position = [(row + move[0]), (i + move[1])]
+                temp_board = create_temp_board(start_position, end_position)
+                if attack_king?(temp_board, @turn) == false
+                  check_mate = false
+                end
+              end
+            end
+          end
+        elsif turn % 2 == 1
+          if piece != " " && BLACK.has_value?(piece)
+            possible_moves = chess_piece.create_move_list(piece, [row, i], game_board.board)
+            possible_moves.each do |move|
+              if row + move[0] > 0 && row + move[0] < 8 && i + move[1] > 0 && i + move[1] < 8
+                start_position = [row, i]
+                end_position = [(row + move[0]), (i + move[1])]
+                temp_board = create_temp_board(start_position, end_position)
+                if attack_king?(temp_board, @turn) == false
+                  check_mate = false
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    check_mate
+  end
 end
 
 test = PlayGame.new
-test.get_player_input
-test.input_valid?
+test.game_sequence
+

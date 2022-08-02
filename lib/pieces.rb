@@ -44,13 +44,10 @@ class ChessPiece
       create_white_pawn_move_list(moves, board, position)
     elsif piece == "\u265f"
       create_black_pawn_move_list(moves, board, position)
-    elsif piece == "\u2654" || piece == "\u265a"
-      KING_MOVES.each do |move|
-        if board[position[0] + move[0]][position[1] + move[1]] == " "
-          moves.push(move)
-        end
-      end
-      moves
+    elsif piece == "\u2654"
+      create_white_king_move_list(moves, board, position)
+    elsif piece == "\u265a"
+      create_black_king_move_list(moves, board, position)
     elsif piece == "\u2658"
       create_white_knight_move_list(moves, board, position)
     elsif piece == "\u265e"
@@ -80,7 +77,13 @@ class ChessPiece
     if (position[0] - 1) > 0 && (position[0] - 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] + 1])
       moves.push([-1, 1])
     end
+    if (position[0] - 1) > 0 && (position[0] - 1) < 8 && board[position[0] - 1][position[1] + 1] == "en passant"
+      moves.push([-1, 1])
+    end
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] - 1])
+      moves.push([-1, -1])
+    end
+    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] - 1][position[1] - 1] == "en passant"
       moves.push([-1, -1])
     end
     moves
@@ -96,43 +99,66 @@ class ChessPiece
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] + 1])
       moves.push([1, 1])
     end
+    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1] + 1] == "en passant"
+      moves.push([1, 1])
+    end
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] - 1])
+      moves.push([1, -1])
+    end
+    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1] - 1] == "en passant"
       moves.push([1, -1])
     end
     moves
   end
 
-  def create_white_knight_move_list(moves, board, position)
-    stop = false
-    KNIGHT_MOVES.each do |move|
-      if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
-        stop = true
+  def create_white_king_move_list(moves, board, position)
+    KING_MOVES.each do |move|
+      if (position[0] + move[0]) >= 0 && (position[1] + move[1]) >= 0  && (position[0] + move[0] <= 7) && (position[1] + move[1] <= 7)
+        if board[position[0] + move[0]][position[1] + move[1]] == " "
+          moves.push(move)
+        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
+          moves.push(move)
+        end
       end
-      if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
-        moves.push(move)
-      elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
-        moves.push(move)
-        stop = true
-      elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
-        stop = true
+    end
+    moves
+  end
+
+  def create_black_king_move_list(moves, board, position)
+    KING_MOVES.each do |move|
+      if (position[0] + move[0]) >= 0 && (position[1] + move[1]) >= 0  && (position[0] + move[0] <= 7) && (position[1] + move[1] <= 7)
+        if board[position[0] + move[0]][position[1] + move[1]] == " "
+          moves.push(move)
+        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
+          moves.push(move)
+        end
+      end
+    end
+    moves
+  end
+
+  def create_white_knight_move_list(moves, board, position)
+    KNIGHT_MOVES.each do |move|
+      if (position[0] + move[0]) >= 0 && (position[1] + move[1]) >= 0  && (position[0] + move[0] <= 7) && (position[1] + move[1] <= 7)
+        if board[position[0] + move[0]][position[1] + move[1]] == " "
+          moves.push(move)
+        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
+          moves.push(move)
+        end
       end
     end
     moves
   end
 
   def create_black_knight_move_list(moves, board, position)
-    stop = false
     KNIGHT_MOVES.each do |move|
-      if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
-        stop = true
-      end
-      if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
-        moves.push(move)
-      elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
-        moves.push(move)
-        stop = true
-      elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
-        stop = true
+      if (position[0] + move[0]) >= 0 && (position[1] + move[1]) >= 0  && (position[0] + move[0] <= 7) && (position[1] + move[1] <= 7)
+        if board[position[0] + move[0]][position[1] + move[1]] == " "
+          moves.push(move)
+        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
+          moves.push(move)
+          stop = true
+        end
       end
     end
     moves
@@ -143,15 +169,15 @@ class ChessPiece
     ROOK_ARRAY.each do |array|
       stop = false
       array.each do |move|
-        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
+        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0 || (position[0] + move[0] > 7) || (position[1] + move[1] > 7)
           stop = true
         end
-        if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
+        if stop == false && board[position[0] + move[0]][position[1] + move[1]] == " "
           moves.push(move)
-        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           moves.push(move)
           stop = true
-        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           stop = true
         end
       end
@@ -163,15 +189,15 @@ class ChessPiece
     ROOK_ARRAY.each do |array|
       stop = false
       array.each do |move|
-        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
+        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0  || (position[0] + move[0] > 7) || (position[1] + move[1] > 7)
           stop = true
         end
-        if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
+        if stop == false && board[position[0] + move[0]][position[1] + move[1]] == " "
           moves.push(move)
-        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           moves.push(move)
           stop = true
-        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           stop = true
         end
       end
@@ -184,15 +210,15 @@ class ChessPiece
     BISHOP_ARRAY.each do |array|
       stop = false
       array.each do |move|
-        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
+        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0  || (position[0] + move[0] > 7) || (position[1] + move[1] > 7)
           stop = true
         end
-        if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
+        if stop == false && board[position[0] + move[0]][position[1] + move[1]] == " "
           moves.push(move)
-        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           moves.push(move)
           stop = true
-        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           stop = true
         end
       end
@@ -205,15 +231,15 @@ class ChessPiece
     BISHOP_ARRAY.each do |array|
       stop = false
       array.each do |move|
-        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
+        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0  || (position[0] + move[0] > 7) || (position[1] + move[1] > 7)
           stop = true
         end
-        if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
+        if stop == false && board[position[0] + move[0]][position[1] + move[1]] == " "
           moves.push(move)
-        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           moves.push(move)
           stop = true
-        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           stop = true
         end
       end
@@ -226,15 +252,15 @@ class ChessPiece
     QUEEN_ARRAY.each do |array|
       stop = false
       array.each do |move|
-        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
+        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0  || (position[0] + move[0] > 7) || (position[1] + move[1] > 7)
           stop = true
         end
-        if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
+        if stop == false && board[position[0] + move[0]][position[1] + move[1]] == " "
           moves.push(move)
-        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           moves.push(move)
           stop = true
-        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           stop = true
         end
       end
@@ -247,15 +273,15 @@ class ChessPiece
     QUEEN_ARRAY.each do |array|
       stop = false
       array.each do |move|
-        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0
+        if (position[0] + move[0]) < 0 || (position[1] + move[1]) < 0  || (position[0] + move[0] > 7) || (position[1] + move[1] > 7)
           stop = true
         end
-        if board[position[0] + move[0]][position[1] + move[1]] == " " && stop == false
+        if stop == false && board[position[0] + move[0]][position[1] + move[1]] == " "
           moves.push(move)
-        elsif WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && WHITE_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           moves.push(move)
           stop = true
-        elsif BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]]) && stop == false
+        elsif stop == false && BLACK_PIECES.include?(board[position[0] + move[0]][position[1] + move[1]])
           stop = true
         end
       end

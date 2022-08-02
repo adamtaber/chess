@@ -115,6 +115,3 @@ class ChessBoard
     end
   end
 end
-
-test = ChessBoard.new
-test.print_board
