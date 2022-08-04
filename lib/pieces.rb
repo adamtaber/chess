@@ -71,7 +71,7 @@ class ChessPiece
     if (position[0] - 1) > 0 && (position[0] - 1) < 8 && board[position[0] - 1][position[1]] == " "
       moves.push([-1, 0])
     end
-    if position[0] == 6
+    if position[0] == 6 && board[position[0] - 2][position[1]] == " "
       moves.push([-2, 0])
     end
     if (position[0] - 1) > 0 && (position[0] - 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] + 1])
@@ -93,7 +93,7 @@ class ChessPiece
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1]] == " "
       moves.push([1, 0])
     end
-    if position[0] == 1
+    if position[0] == 1 && board[position[0] + 2][position[1]] == " "
       moves.push([2, 0])
     end
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] + 1])

@@ -22,11 +22,17 @@ class PlayGame
   def game_sequence
     game_board.print_board
     until check_mate?
+      player_in_check?
       get_player_input
       input_valid?
       move_piece
       game_board.print_board
       @turn += 1
+    end
+    if @turn % 2 == 1
+      puts "Checkmate, White is the winner"
+    elsif @turn % 2 == 0
+      puts "Checkmate, Black is the winner"
     end
   end
 
@@ -193,6 +199,16 @@ class PlayGame
       end
     end
     check_mate
+  end
+
+  def player_in_check?
+    if attack_king?(game_board.board, @turn) == true
+      if @turn % 2 == 0
+        puts "White, you are now in check"
+      elsif @turn % 2 == 1
+        puts "Black, you are now in check"
+      end
+    end
   end
 end
 
