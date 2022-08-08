@@ -86,8 +86,7 @@ class PlayGame
     until check_mate? || @save_game == true
       player_in_check?
       get_player_input
-      if @save_game == false
-        input_valid?
+      if @save_game == false                   
         move_piece
         game_board.print_board
         @turn += 1
@@ -113,7 +112,7 @@ class PlayGame
     if input.join == "save"
       save_game
     else
-      until input_correct?(input)
+      until input_correct_range?(input) && check_items_and_move(input) && input_valid?
         if @turn % 2 == 0
           puts "White, please enter the position of the piece you would like to move, followed by the desired placement"
         elsif @turn % 2 == 1
@@ -121,18 +120,10 @@ class PlayGame
         end
         input = gets.chomp.split
       end
-      item_num = LETTERS[:"#{input[0][0]}"]
-      row_num = (8 - input[0][1].to_i)
-      new_item_num = LETTERS[:"#{input[1][0]}"]
-      new_row_num = (8 - input[1][1].to_i)
-      check_new_items(new_row_num, new_item_num)
-      @piece_position = [row_num, item_num]
-      @end_position = [new_row_num, new_item_num]
-      calculate_move(row_num, new_row_num, item_num, new_item_num)
     end
   end
 
-  def input_correct?(input)
+  def input_correct_range?(input)
     if input.length != 2
       false
     elsif input[0].length != 2 || input[1].length != 2
@@ -149,10 +140,12 @@ class PlayGame
   def check_new_items(new_row, new_item)
     if new_row > 7 || new_row < 0
       puts "Invalid input"
-      get_player_input
+      false
     elsif new_item > 7 || new_item < 0
       puts "Invalid input"
-      get_player_input
+      false
+    else
+      true
     end
   end
 
@@ -162,21 +155,36 @@ class PlayGame
     @move = [vertical_move, horizontal_move]
   end
 
+  def check_items_and_move (input)
+    check_items = false
+    item_num = LETTERS[:"#{input[0][0]}"]
+    row_num = (8 - input[0][1].to_i)
+    new_item_num = LETTERS[:"#{input[1][0]}"]
+    new_row_num = (8 - input[1][1].to_i)
+    if check_new_items(new_row_num, new_item_num)
+      check_items = true
+    end
+    @piece_position = [row_num, item_num]
+    @end_position = [new_row_num, new_item_num]
+    calculate_move(row_num, new_row_num, item_num, new_item_num)
+    check_items
+  end
+
   def input_valid?
     board = game_board.board
     start_place = board[@piece_position[0]][@piece_position[1]]
     end_place = board[@end_position[0]][@end_position[1]]
     if chess_piece.correct_color?(start_place, @turn) != true
       puts "Please choose one of your own pieces"
-      get_player_input
-    end
-    if valid_move? != true
+      false
+    elsif valid_move? != true
       puts "Please choose a valid move"
-      get_player_input
-    end
-    if in_check?(@turn) == true
+      false
+    elsif in_check?(@turn) == true
       puts "Please choose a move that does not place your king in check"
-      get_player_input
+      false
+    else
+      true
     end
   end
 
@@ -231,7 +239,6 @@ class PlayGame
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
       game_board.board[@piece_position[0] - 1][@piece_position[1]] = "_"
       @chess_piece.white_en_passant.push([@piece_position[0]-1, @piece_position[1]])
-    # elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "en passant"
     elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "_"
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
