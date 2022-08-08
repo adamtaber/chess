@@ -1,6 +1,8 @@
 require 'yaml'
 class ChessPiece
   attr_reader :color
+  attr_accessor :black_en_passant
+  attr_accessor :white_en_passant
 
   # WHITE_PIECES = { "\u2659": Pawn, "\u2656": Rook.new, "\u2657": Bishop.new, "\u2658": Knight.new, "\u2655": Queen.new, "\u2654": King.new }
   # BLACK_PIECES = { "\u265f": Pawn, "\u265c": Rook.new, "\u265d": Bishop.new, "\u265e": Knight.new, "\u265b": Queen.new, "\u265a": King.new }
@@ -29,6 +31,8 @@ class ChessPiece
 
 
   def initialize
+    @black_en_passant = []
+    @white_en_passant = []
   end
 
   def correct_color?(piece_value, turn)
@@ -78,13 +82,13 @@ class ChessPiece
     if (position[0] - 1) > 0 && (position[0] - 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] + 1])
       moves.push([-1, 1])
     end
-    if (position[0] - 1) > 0 && (position[0] - 1) < 8 && board[position[0] - 1][position[1] + 1] == "en passant"
+    if (position[0] - 1) > 0 && (position[0] - 1) < 8 && @black_en_passant.include?([position[0]-1, position[1]+1])
       moves.push([-1, 1])
     end
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] - 1])
       moves.push([-1, -1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] - 1][position[1] - 1] == "en passant"
+    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && @black_en_passant.include?([position[0]-1, position[1]-1])
       moves.push([-1, -1])
     end
     moves
@@ -100,13 +104,13 @@ class ChessPiece
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] + 1])
       moves.push([1, 1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1] + 1] == "en passant"
+    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && @white_en_passant.include?([position[0]+1, position[1]+1])
       moves.push([1, 1])
     end
     if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] - 1])
       moves.push([1, -1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1] - 1] == "en passant"
+    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && @white_en_passant.include?([position[0]+1, position[1]-1])
       moves.push([1, -1])
     end
     moves

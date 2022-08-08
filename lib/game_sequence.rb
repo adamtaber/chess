@@ -91,6 +91,7 @@ class PlayGame
         move_piece
         game_board.print_board
         @turn += 1
+        clear_en_passant
       end
     end
     if @save_game == true
@@ -223,13 +224,13 @@ class PlayGame
     if game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" && @move == [2, 0]
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
-      #game_board.board[@piece_position[0] + 1][@piece_position[1]] = "en passant"
       game_board.board[@piece_position[0] + 1][@piece_position[1]] = "_"
+      @chess_piece.black_en_passant.push([@piece_position[0] + 1,@piece_position[1]])
     elsif game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659" && @move == [-2, 0]
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
-      # game_board.board[@piece_position[0] - 1][@piece_position[1]] = "en passant"
       game_board.board[@piece_position[0] - 1][@piece_position[1]] = "_"
+      @chess_piece.white_en_passant.push([@piece_position[0]-1, @piece_position[1]])
     # elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "en passant"
     elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "_"
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
@@ -238,6 +239,14 @@ class PlayGame
     else
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
+    end
+  end
+
+  def clear_en_passant
+    if @turn % 2 == 0
+      @chess_piece.white_en_passant = []
+    elsif @turn % 2 == 1
+      @chess_piece.black_en_passant = []
     end
   end
 
