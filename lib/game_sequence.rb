@@ -44,7 +44,14 @@ class PlayGame
       puts "Black, please enter the position of the piece you would like to move, followed by the desired placement"
     end
     input = gets.chomp.split
-    check_input_format(input)
+    until input_correct?(input)
+      if @turn % 2 == 0
+        puts "White, please enter the position of the piece you would like to move, followed by the desired placement"
+      elsif @turn % 2 == 1
+        puts "Black, please enter the position of the piece you would like to move, followed by the desired placement"
+      end
+      input = gets.chomp.split
+    end
     item_num = LETTERS[:"#{input[0][0]}"]
     row_num = (8 - input[0][1].to_i)
     new_item_num = LETTERS[:"#{input[1][0]}"]
@@ -55,15 +62,17 @@ class PlayGame
     calculate_move(row_num, new_row_num, item_num, new_item_num)
   end
 
-  def check_input_format(input)
+  def input_correct?(input)
     if input.length != 2
-      get_player_input
+      false
     elsif input[0].length != 2 || input[1].length != 2
-      get_player_input
+      false
     elsif LETTERS.has_key?(:"#{input[0][0]}") != true || LETTERS.has_key?(:"#{input[1][0]}") != true
-      get_player_input
+      false
     elsif input[0][1].to_i > 8 || input[0][1].to_i < 1 || input[1][1].to_i > 8 || input[1][1].to_i < 1
-      get_player_input
+      false
+    else
+      true
     end
   end
 
