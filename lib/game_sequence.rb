@@ -20,12 +20,20 @@ class PlayGame
     @move = nil
     @save_game = false
     @save_board = @game_board.board
+    @white_king_has_moved = false
+    @white_rook_kingside_moved = false
+    @white_rook_queenside_moved = false
+    @black_king_has_moved = false
+    @black_rook_kingside_moved = false
+    @black_rook_queenside_moved = false
   end
 
   def save_game
     yaml_hash = {'save_board' => @save_board, 'turn' => @turn,
     'piece_position' => @piece_position, 'end_position' => @end_position, 'move' => @move, 
-    'save_game' => @save_game}
+    'save_game' => @save_game, 'white_king_has_moved' => @white_king_has_moved, 'white_rook_kingside_moved' => @white_rook_kingside_moved,
+    'white_rook_queenside_moved' => @white_rook_queenside_moved, 'black_king_has_moved' => @black_king_has_moved, 'black_rook_kingside_moved' => @black_rook_kingside_moved,
+    'black_rook_queenside_moved' => @black_rook_queenside_moved}
     if Dir.exists?('save_files') == false
       Dir.mkdir('save_files')
     end
@@ -189,7 +197,105 @@ class PlayGame
   end
 
   def valid_move?
-    chess_piece.create_move_list(game_board.board[@piece_position[0]][@piece_position[1]], @piece_position, game_board.board).include?(@move)
+    if (@piece_position == [7, 4] || @piece_position == [0, 4]) && (@move == [0, 2] || @move == [0, -2])
+      valid_castle?
+    else
+      chess_piece.create_move_list(game_board.board[@piece_position[0]][@piece_position[1]], @piece_position, game_board.board).include?(@move)
+    end
+  end
+
+  def valid_castle?
+    valid = true
+    if @piece_position == [7, 4] && @move == [0, 2]
+      if @white_king_has_moved
+        valid = false
+      elsif @white_rook_kingside_moved
+        valid = false
+      elsif game_board.board[7][5] != " " || game_board.board[7][6] != " "
+        valid = false
+      else
+        temp_board = create_temp_board([7, 4], [7, 5])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        temp_board = create_temp_board([7, 4], [7, 6])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        if attack_king?(game_board.board, @turn)
+          valid = false
+        end
+      end
+    elsif @piece_position == [7,4] && @move == [0,-2]
+      if @white_king_has_moved
+        valid = false
+      elsif @white_rook_queenside_moved
+        valid = false
+      elsif game_board.board[7][3] != " " || game_board.board[7][2] != " " || game_board.board[7][1] != " "
+        valid = false
+      else
+        temp_board = create_temp_board([7, 4],[7, 3])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        temp_board = create_temp_board([7, 4],[7, 2])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        temp_board = create_temp_board([7, 4],[7, 1])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        if attack_king?(game_board.board, @turn)
+          valid = false
+        end
+      end
+    elsif @piece_position == [0, 4] && @move == [0, 2]
+      if @black_king_has_moved
+        valid = false
+      elsif @black_rook_kingside_moved
+        valid = false
+      elsif game_board.board[0][5] != " " || game_board.board[0][6] != " "
+        valid = false
+      else
+        temp_board = create_temp_board([0, 4], [0, 5])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        temp_board = create_temp_board([0, 4], [0, 6])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        if attack_king?(game_board.board, @turn)
+          valid = false
+        end
+      end
+    elsif @piece_position == [0,4] && @move == [0,-2]
+      if @black_king_has_moved
+        valid = false
+      elsif @black_rook_queenside_moved
+        valid = false
+      elsif game_board.board[0][3] != " " || game_board.board[0][2] != " " || game_board.board[0][1] != " "
+        valid = false
+      else
+        temp_board = create_temp_board([0, 4],[0, 3])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        temp_board = create_temp_board([0, 4],[0, 2])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        temp_board = create_temp_board([0, 4],[0, 1])
+        if attack_king?(temp_board, @turn) == true
+          valid = false
+        end
+        if attack_king?(game_board.board, @turn)
+          valid = false
+        end
+      end  
+    end
+    valid
   end
 
   def create_temp_board(start_position=@piece_position, end_position=@end_position)
@@ -229,6 +335,19 @@ class PlayGame
   end
 
   def move_piece
+    if @piece_position == [7, 4]
+      @white_king_has_moved = true
+    elsif @piece_position == [7, 0]
+      @white_rook_queenside_moved = true
+    elsif @piece_position == [7, 7]
+      @white_rook_kingside_moved = true
+    elsif @piece_position == [0, 4]
+      @black_king_has_moved = true
+    elsif @piece_position == [0, 0]
+      @black_rook_queenside_moved = true
+    elsif @piece_position == [0, 7]
+      @black_rook_kingside_moved = true
+    end
     if game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" && @move == [2, 0]
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
@@ -243,6 +362,26 @@ class PlayGame
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
       game_board.board[@piece_position[0]][@end_position[1]] = " "
+    elsif @piece_position == [7, 4] && @move == [0, -2]
+      game_board.board[7][2] = game_board.board[7][4]
+      game_board.board[7][4] = " "
+      game_board.board[7][3] = game_board.board[7][0]
+      game_board.board[7][0] = " "
+    elsif @piece_position == [7, 4] && @move == [0, 2]
+      game_board.board[7][6] = game_board.board[7][4]
+      game_board.board[7][4] = " "
+      game_board.board[7][5] = game_board.board[7][7]
+      game_board.board[7][7] = " "
+    elsif @piece_position == [0, 4] && @move == [0, -2]
+      game_board.board[0][2] = game_board.board[0][4]
+      game_board.board[0][4] = " "
+      game_board.board[0][3] = game_board.board[0][0]
+      game_board.board[0][0] = " "
+    elsif @piece_position == [0, 4] && @move == [0, 2]
+      game_board.board[0][6] = game_board.board[0][4]
+      game_board.board[0][4] = " "
+      game_board.board[0][5] = game_board.board[0][0]
+      game_board.board[0][0] = " "
     else
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
