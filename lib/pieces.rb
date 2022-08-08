@@ -1,3 +1,4 @@
+require 'yaml'
 class ChessPiece
   attr_reader :color
 

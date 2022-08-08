@@ -1,3 +1,4 @@
+require 'yaml'
 require 'colorize'
 require_relative '../lib/pieces'
 

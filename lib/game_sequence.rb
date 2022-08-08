@@ -1,3 +1,4 @@
+require 'yaml'
 require_relative '../lib/chess'
 require_relative '../lib/pieces'
 
@@ -17,19 +18,83 @@ class PlayGame
     @piece_position = nil
     @end_position = nil
     @move = nil
+    @save_game = false
+    @save_board = @game_board.board
+  end
+
+  def save_game
+    yaml_hash = {'save_board' => @save_board, 'turn' => @turn,
+    'piece_position' => @piece_position, 'end_position' => @end_position, 'move' => @move, 
+    'save_game' => @save_game}
+    if Dir.exists?('save_files') == false
+      Dir.mkdir('save_files')
+    end
+    puts "\n"
+    puts "Please type a name for your save file"
+    file_name = gets.chomp
+    File.open("save_files/#{file_name}.yaml", "w") do |file|
+      file.puts YAML.dump(yaml_hash)
+    end
+    puts "\n"
+    puts "Your game has been saved, thank you for playing"
+    @save_game = true
+  end
+
+  def load_game
+    files = Dir.entries('save_files')
+    files.each_index do |index|
+      puts "#{index}: #{files[index]}"
+    end
+    puts "type the number of the save file you would like to load"
+    number = gets.chomp.to_i
+    File.open("save_files/#{files[number]}", 'r') do |file|
+      save = YAML.load(file)
+      @save_board = save["save_board"]
+      @turn = save["turn"]
+      @piece_position = save["piece_position"]
+      @end_position = save["end_position"]
+      @move = save["move"]
+      @save_game = save["save_game"]
+    end
+    puts "Remember that you can save the game by typing 'save' instead of your a move sequence"
+    @game_board.board = @save_board
+    game_sequence
+  end
+
+  def game_intro
+    puts "Welcome to Chess!"
+    if Dir.exists?('save_files')
+      puts "Would you like to load a previous game? (y/n)"
+      answer = gets.chomp.downcase
+      if answer == "y"
+        load_game
+      elsif answer == "n"
+        puts "Remember that you can save the game by typing 'save' instead of move sequence"
+        game_sequence
+      else
+        game_intro
+      end
+    end
+    if Dir.exists?('save_files') == false
+      puts "You can save the game by typing 'save' instead of a move sequence"
+      game_sequence
+    end
   end
 
   def game_sequence
     game_board.print_board
-    until check_mate?
+    until check_mate? || @save_game == true
       player_in_check?
       get_player_input
-      input_valid?
-      move_piece
-      game_board.print_board
-      @turn += 1
+      if @save_game == false
+        input_valid?
+        move_piece
+        game_board.print_board
+        @turn += 1
+      end
     end
-    if @turn % 2 == 1
+    if @save_game == true
+    elsif @turn % 2 == 1
       puts "Checkmate, White is the winner"
     elsif @turn % 2 == 0
       puts "Checkmate, Black is the winner"
@@ -44,22 +109,26 @@ class PlayGame
       puts "Black, please enter the position of the piece you would like to move, followed by the desired placement"
     end
     input = gets.chomp.split
-    until input_correct?(input)
-      if @turn % 2 == 0
-        puts "White, please enter the position of the piece you would like to move, followed by the desired placement"
-      elsif @turn % 2 == 1
-        puts "Black, please enter the position of the piece you would like to move, followed by the desired placement"
+    if input.join == "save"
+      save_game
+    else
+      until input_correct?(input)
+        if @turn % 2 == 0
+          puts "White, please enter the position of the piece you would like to move, followed by the desired placement"
+        elsif @turn % 2 == 1
+          puts "Black, please enter the position of the piece you would like to move, followed by the desired placement"
+        end
+        input = gets.chomp.split
       end
-      input = gets.chomp.split
+      item_num = LETTERS[:"#{input[0][0]}"]
+      row_num = (8 - input[0][1].to_i)
+      new_item_num = LETTERS[:"#{input[1][0]}"]
+      new_row_num = (8 - input[1][1].to_i)
+      check_new_items(new_row_num, new_item_num)
+      @piece_position = [row_num, item_num]
+      @end_position = [new_row_num, new_item_num]
+      calculate_move(row_num, new_row_num, item_num, new_item_num)
     end
-    item_num = LETTERS[:"#{input[0][0]}"]
-    row_num = (8 - input[0][1].to_i)
-    new_item_num = LETTERS[:"#{input[1][0]}"]
-    new_row_num = (8 - input[1][1].to_i)
-    check_new_items(new_row_num, new_item_num)
-    @piece_position = [row_num, item_num]
-    @end_position = [new_row_num, new_item_num]
-    calculate_move(row_num, new_row_num, item_num, new_item_num)
   end
 
   def input_correct?(input)
@@ -222,5 +291,5 @@ class PlayGame
 end
 
 test = PlayGame.new
-test.game_sequence
+test.game_intro
 
