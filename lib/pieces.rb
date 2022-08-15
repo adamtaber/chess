@@ -73,44 +73,44 @@ class ChessPiece
   end
 
   def create_white_pawn_move_list(moves, board, position)
-    if (position[0] - 1) > 0 && (position[0] - 1) < 8 && board[position[0] - 1][position[1]] == " "
+    if (position[0] - 1) >= 0 && (position[0] - 1) < 8 && board[position[0] - 1][position[1]] == " "
       moves.push([-1, 0])
     end
     if position[0] == 6 && board[position[0] - 2][position[1]] == " "
       moves.push([-2, 0])
     end
-    if (position[0] - 1) > 0 && (position[0] - 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] + 1])
+    if (position[0] - 1) >= 0 && (position[0] - 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] + 1])
       moves.push([-1, 1])
     end
-    if (position[0] - 1) > 0 && (position[0] - 1) < 8 && @black_en_passant.include?([position[0]-1, position[1]+1])
+    if (position[0] - 1) >= 0 && (position[0] - 1) < 8 && @black_en_passant.include?([position[0]-1, position[1]+1])
       moves.push([-1, 1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] - 1])
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && BLACK_PIECES.include?(board[position[0] - 1][position[1] - 1])
       moves.push([-1, -1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && @black_en_passant.include?([position[0]-1, position[1]-1])
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && @black_en_passant.include?([position[0]-1, position[1]-1])
       moves.push([-1, -1])
     end
     moves
   end
 
   def create_black_pawn_move_list(moves, board, position)
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1]] == " "
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && board[position[0] + 1][position[1]] == " "
       moves.push([1, 0])
     end
     if position[0] == 1 && board[position[0] + 2][position[1]] == " "
       moves.push([2, 0])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] + 1])
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] + 1])
       moves.push([1, 1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && @white_en_passant.include?([position[0]+1, position[1]+1])
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && @white_en_passant.include?([position[0]+1, position[1]+1])
       moves.push([1, 1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] - 1])
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && WHITE_PIECES.include?(board[position[0] + 1][position[1] - 1])
       moves.push([1, -1])
     end
-    if (position[0] + 1) > 0 && (position[0] + 1) < 8 && @white_en_passant.include?([position[0]+1, position[1]-1])
+    if (position[0] + 1) >= 0 && (position[0] + 1) < 8 && @white_en_passant.include?([position[0]+1, position[1]-1])
       moves.push([1, -1])
     end
     moves

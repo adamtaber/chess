@@ -351,14 +351,18 @@ class PlayGame
     if game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" && @move == [2, 0]
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
-      game_board.board[@piece_position[0] + 1][@piece_position[1]] = "_"
+      #game_board.board[@piece_position[0] + 1][@piece_position[1]] = "_"
       @chess_piece.black_en_passant.push([@piece_position[0] + 1,@piece_position[1]])
     elsif game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659" && @move == [-2, 0]
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
-      game_board.board[@piece_position[0] - 1][@piece_position[1]] = "_"
+      #game_board.board[@piece_position[0] - 1][@piece_position[1]] = "_"
       @chess_piece.white_en_passant.push([@piece_position[0]-1, @piece_position[1]])
-    elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "_"
+    # elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && game_board.board[@end_position[0]][@end_position[1]] == "_"
+    #   game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
+    #   game_board.board[@piece_position[0]][@piece_position[1]] = " "
+    #   game_board.board[@piece_position[0]][@end_position[1]] = " "
+    elsif (game_board.board[@piece_position[0]][@piece_position[1]] == "\u265f" || game_board.board[@piece_position[0]][@piece_position[1]] == "\u2659") && en_passant?
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
       game_board.board[@piece_position[0]][@end_position[1]] = " "
@@ -382,10 +386,40 @@ class PlayGame
       game_board.board[0][4] = " "
       game_board.board[0][5] = game_board.board[0][0]
       game_board.board[0][0] = " "
+    elsif pawn_promotion?
+      if @turn % 2 == 0
+        game_board.board[@end_position[0]][@end_position[1]] = WHITE[:queen]
+        game_board.board[@piece_position[0]][@piece_position[1]] = " "
+      elsif @turn % 2 == 1
+        game_board.board[@end_position[0]][@end_position[1]] = BLACK[:queen]
+        game_board.board[@piece_position[0]][@piece_position[1]] = " "
+      end
     else
       game_board.board[@end_position[0]][@end_position[1]] = game_board.board[@piece_position[0]][@piece_position[1]]
       game_board.board[@piece_position[0]][@piece_position[1]] = " "
     end
+  end
+
+  def en_passant?
+    passant = false
+    if @move[1] != 0
+      passant = true
+    end
+    passant
+  end
+
+  def pawn_promotion?
+    promote = true
+    if game_board.board[@piece_position[0]][@piece_position[1]] != BLACK[:pawn] && game_board.board[@piece_position[0]][@piece_position[1]] != WHITE[:pawn]
+      promote = false
+    end
+    if game_board.board[@piece_position[0]][@piece_position[1]] == BLACK[:pawn] && @end_position[0] != 7
+      promote = false
+    end
+    if game_board.board[@piece_position[0]][@piece_position[1]] == WHITE[:pawn] && @end_position[0] != 0
+      promote = false
+    end
+    promote
   end
 
   def clear_en_passant
